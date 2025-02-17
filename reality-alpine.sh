@@ -33,9 +33,6 @@ install_dependencies() {
 install_dependencies
 
 # Define Environment Variables
-export NEZHA_SERVER=${NEZHA_SERVER:-'nz.f4i.cn'} 
-export NEZHA_PORT=${NEZHA_PORT:-'5555'}     
-export NEZHA_KEY=${NEZHA_KEY:-''} 
 export PORT=${PORT:-$(shuf -i 2000-65000 -n 1)}
 export FILE_PATH=${FILE_PATH:-'./app'}
 export SNI=${SNI:-'www.yahoo.com'}
@@ -96,14 +93,10 @@ generate_config() {
                 "realitySettings": {
                     "show": false,
                     "dest": "1.1.1.1:443",
-                    "xver": 0,
                     "serverNames": [
                         "$SNI"
                     ],
                     "privateKey": "$PrivateKey",
-                    "minClientVer": "",
-                    "maxClientVer": "",
-                    "maxTimeDiff": 0,
                     "shortIds": [
                         "$shortid"
                     ]
@@ -129,25 +122,15 @@ generate_config
 # running files
 run() {
   if [ -e "${FILE_PATH}/npm" ]; then
-    tlsPorts=("443" "8443" "2096" "2087" "2083" "2053")
-    if [[ "${tlsPorts[*]}" =~ "${NEZHA_PORT}" ]]; then
-      NEZHA_TLS="--tls"
-    else
-      NEZHA_TLS=""
-    fi
-    if [ -n "$NEZHA_SERVER" ] && [ -n "$NEZHA_PORT" ] && [ -n "$NEZHA_KEY" ]; then
-        nohup ${FILE_PATH}/npm -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} >/dev/null 2>&1 &
-	sleep 1
-        ps aux | grep "[n]pm" > /dev/null && echo -e "\e[1;32mnpm is running\e[0m" || { echo -e "\e[1;35mnpm is not running, restarting...\e[0m"; pkill -x "npm"; nohup "${FILE_PATH}/npm" -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32mnpm restarted\e[0m"; }
-    else
-        echo -e "\e[1;35mNEZHA variable is empty,skiping runing\e[0m"
-    fi
+    nohup "${FILE_PATH}/npm" >/dev/null 2>&1 &
+    sleep 1
+    ps aux | grep "[n]pm" > /dev/null && echo -e "\e[1;32mnpm is running\e[0m" || { echo -e "\e[1;35mnpm is not running, restarting...\e[0m"; pkill -x "npm"; nohup "${FILE_PATH}/npm" >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32mnpm restarted\e[0m"; }
   fi
 
   if [ -e "${FILE_PATH}/web" ]; then
     nohup "${FILE_PATH}/web" -c ${FILE_PATH}/config.json >/dev/null 2>&1 &
     sleep 1
-    ps aux | grep "[w]eb" > /dev/null && echo -e "\e[1;32mweb is running\e[0m" || { echo -e "\e[1;35mweb is not running, restarting...\e[0m"; pkill -x "web"; nohup ${FILE_PATH}/web -c ${FILE_PATH}/config.json >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32mweb restarted\e[0m"; }
+    ps aux | grep "[w]eb" > /dev/null && echo -e "\e[1;32mweb is running\e[0m" || { echo -e "\e[1;35mweb is not running, restarting...\e[0m"; pkill -x "web"; nohup "${FILE_PATH}/web" -c ${FILE_PATH}/config.json >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32mweb restarted\e[0m"; }
   fi
 
 }

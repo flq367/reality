@@ -46,7 +46,7 @@ DOWNLOAD_DIR="${FILE_PATH}"
 mkdir -p "$DOWNLOAD_DIR"
 
 # Define the common download link and file name
-FILE_INFO=("https://github.com/eooce/test/releases/download/amd64/xray web")
+FILE_INFO=("https://github.com/flq367/reality/releases/download/amd64/xray web")
 
 for entry in "${FILE_INFO[@]}"; do
     URL=$(echo "$entry" | cut -d ' ' -f 1)

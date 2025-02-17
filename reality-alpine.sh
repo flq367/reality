@@ -125,9 +125,6 @@ generate_config
 
 # running files
 run() {
-  if [ -e "${FILE_PATH}/npm" ]; then
-    echo -e "\e[1;35mNEZHA variable related parts are removed, skipping running npm\e[0m"
-  fi
 
   if [ -e "${FILE_PATH}/web" ]; then
     nohup "${FILE_PATH}/web" -c ${FILE_PATH}/config.json >/dev/null 2>&1 &

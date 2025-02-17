@@ -43,9 +43,9 @@ echo -e "\e[1;32mInstallation is in progress, please wait...\e[0m"
 # Download Dependency Files
 ARCH=$(uname -m) && DOWNLOAD_DIR="${FILE_PATH}" && mkdir -p "$DOWNLOAD_DIR" && FILE_INFO=()
 if [ "$ARCH" == "arm" ] || [ "$ARCH" == "arm64" ] || [ "$ARCH" == "aarch64" ]; then
-    FILE_INFO=("https://github.com/eooce/test/releases/download/arm64/xray web" "https://github.com/eooce/test/releases/download/ARM/swith npm")
+    FILE_INFO=("https://github.com/eooce/test/releases/download/arm64/xray web")
 elif [ "$ARCH" == "amd64" ] || [ "$ARCH" == "x86_64" ] || [ "$ARCH" == "x86" ]; then
-    FILE_INFO=("https://github.com/eooce/test/releases/download/amd64/xray web" "https://github.com/eooce/test/releases/download/bulid/swith npm")
+    FILE_INFO=("https://github.com/eooce/test/releases/download/amd64/xray web")
 else
     echo "Unsupported architecture: $ARCH"
     exit 1
@@ -121,11 +121,6 @@ generate_config
 
 # running files
 run() {
-  if [ -e "${FILE_PATH}/npm" ]; then
-    nohup "${FILE_PATH}/npm" >/dev/null 2>&1 &
-    sleep 1
-    ps aux | grep "[n]pm" > /dev/null && echo -e "\e[1;32mnpm is running\e[0m" || { echo -e "\e[1;35mnpm is not running, restarting...\e[0m"; pkill -x "npm"; nohup "${FILE_PATH}/npm" >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32mnpm restarted\e[0m"; }
-  fi
 
   if [ -e "${FILE_PATH}/web" ]; then
     nohup "${FILE_PATH}/web" -c ${FILE_PATH}/config.json >/dev/null 2>&1 &

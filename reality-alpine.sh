@@ -25,7 +25,7 @@ install_dependencies() {
     elif command -v apk &>/dev/null; then
         pm="apk add"
     else
-        echo -e "\e[1;33mUnsupported system!\e[0m"
+        echo -e "\e[1;33m暂不支持的系统!\e[0m"
         exit 1
     fi
     $pm $install
@@ -55,18 +55,18 @@ for entry in "${FILE_INFO[@]}"; do
     NEW_FILENAME=$(echo "$entry" | cut -d ' ' -f 2)
     FILENAME="$DOWNLOAD_DIR/$NEW_FILENAME"
     if [ -e "$FILENAME" ]; then
-        echo -e "\e[1;32m$FILENAME already exists, Skipping download\e[0m"
+        echo -e "\e[1;32m$FILENAME already exists,Skipping download\e[0m"
     else
         curl -L -sS -o "$FILENAME" "$URL"
         echo -e "\e[1;32mDownloading $FILENAME\e[0m"
     fi
     chmod +x $FILENAME
-
 done
 wait
 
 # Generating Configuration Files
 generate_config() {
+
     X25519Key=$(./"${FILE_PATH}/web" x25519)
     PrivateKey=$(echo "${X25519Key}" | head -1 | awk '{print $3}')
     PublicKey=$(echo "${X25519Key}" | tail -n 1 | awk '{print $3}')
@@ -123,21 +123,23 @@ EOF
 }
 generate_config
 
-# Running files
+# running files
 run() {
+
   if [ -e "${FILE_PATH}/web" ]; then
     nohup "${FILE_PATH}/web" -c ${FILE_PATH}/config.json >/dev/null 2>&1 &
     sleep 1
     ps aux | grep "[w]eb" > /dev/null && echo -e "\e[1;32mweb is running\e[0m" || { echo -e "\e[1;35mweb is not running, restarting...\e[0m"; pkill -x "web"; nohup ${FILE_PATH}/web -c ${FILE_PATH}/config.json >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32mweb restarted\e[0m"; }
   fi
+
 }
 run
 
-# Get IP
+# get ip
 IP=$(curl -s ipv4.ip.sb)
 
-# Get IP Info
-ISP=$(curl -s https://speed.cloudflare.com/meta | awk -F" '{print $26"-"$18}' | sed -e 's/ /_/g')
+# get ipinfo
+ISP=$(curl -s https://speed.cloudflare.com/meta | awk -F\" '{print $26"-"$18}' | sed -e 's/ /_/g')
 
 cat > ${FILE_PATH}/list.txt <<EOF
 

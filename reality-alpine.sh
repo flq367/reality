@@ -43,10 +43,10 @@ echo -e "\e[1;32mInstallation is in progress, please wait...\e[0m"
 # Download Dependency Files
 ARCH=$(uname -m) && DOWNLOAD_DIR="${FILE_PATH}" && mkdir -p "$DOWNLOAD_DIR"
 if [ "$ARCH" == "arm" ] || [ "$ARCH" == "arm64" ] || [ "$ARCH" == "aarch64" ]; then
-    URL="https://github.com/eooce/test/releases/download/arm64/xray"
+    URL="https://github.com/eooce/test/releases/download/arm64/xray web"
     NEW_FILENAME="web"
 elif [ "$ARCH" == "amd64" ] || [ "$ARCH" == "x86_64" ] || [ "$ARCH" == "x86" ]; then
-    URL="https://github.com/eooce/test/releases/download/amd64/xray"
+    URL="https://github.com/eooce/test/releases/download/amd64/xray web"
     NEW_FILENAME="web"
 else
     echo "Unsupported architecture: $ARCH"

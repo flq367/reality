@@ -27,9 +27,9 @@ install_reality() {
     port=$(check_port "$port")
 
     if [ -f "/etc/alpine-release" ]; then
-        PORT=$port bash -c "$(curl -L https://raw.githubusercontent.com/eooce/scripts/master/test.sh)"
+        PORT=$port bash -c "$(curl -L https://raw.githubusercontent.com/flq367/reality/main/reality-alpine.sh)"
     else
-        PORT=$port bash -c "$(curl -L https://raw.githubusercontent.com/eooce/xray-reality/master/reality.sh)"
+        PORT=$port bash -c "$(curl -L https://raw.githubusercontent.com/flq367/reality/main/reality.sh)"
     fi
 
     echo -e "${green}Reality 安装完成，监听端口: $port${re}"

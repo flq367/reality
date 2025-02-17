@@ -11,7 +11,7 @@ re="\033[0m"
 check_port() {
     while netstat -tuln | grep -w tcp | awk '{print $4}' | sed 's/.*://g' | grep -w "$1" &>/dev/null; do
         echo -e "${red}端口 $1 已被占用，请输入新的端口:${re}"
-        read -p "新的 Reality 端口 [1-65535]: " new_port
+        read -r -p "新的 Reality 端口 [1-65535]: " new_port
         [ -z "$new_port" ] && new_port=$(shuf -i 2000-65000 -n 1)
         set -- "$new_port"
     done
@@ -22,7 +22,7 @@ check_port() {
 install_reality() {
     clear
     echo -e "${green}开始安装 Reality...${re}"
-    read -p "请输入 Reality 端口 (留空则随机生成): " port
+    read -r -p "请输入 Reality 端口 (留空则随机生成): " port
     [ -z "$port" ] && port=$(shuf -i 2000-65000 -n 1)
     port=$(check_port "$port")
 
@@ -54,7 +54,7 @@ uninstall_reality() {
 change_port() {
     clear
     echo -e "${yellow}修改 Reality 端口...${re}"
-    read -p "请输入新的 Reality 端口 (留空则随机生成): " new_port
+    read -r -p "请输入新的 Reality 端口 (留空则随机生成): " new_port
     [ -z "$new_port" ] && new_port=$(shuf -i 2000-65000 -n 1)
     new_port=$(check_port "$new_port")
 
@@ -75,18 +75,22 @@ change_port() {
 }
 
 # 菜单
-echo -e "${skyblue}Reality 管理脚本${re}"
-echo "----------------------"
-echo -e "${green}1. 安装 Reality${re}"
-echo -e "${red}2. 卸载 Reality${re}"
-echo -e "${yellow}3. 修改 Reality 端口${re}"
-echo "----------------------"
-read -p "请输入你的选择: " choice
+while true; do
+    clear
+    echo -e "${skyblue}Reality 管理脚本${re}"
+    echo "----------------------"
+    echo -e "${green}1. 安装 Reality${re}"
+    echo -e "${red}2. 卸载 Reality${re}"
+    echo -e "${yellow}3. 修改 Reality 端口${re}"
+    echo -e "${skyblue}0. 退出${re}"
+    echo "----------------------"
+    read -r -p "请输入你的选择: " choice
 
-case "$choice" in
-    1) install_reality ;;
-    2) uninstall_reality ;;
-    3) change_port ;;
-    *) echo -e "${red}无效输入！${re}" ;;
-esac
-
+    case "$choice" in
+        1) install_reality ;;
+        2) uninstall_reality ;;
+        3) change_port ;;
+        0) echo -e "${green}退出脚本...${re}"; exit 0 ;;
+        *) echo -e "${red}无效输入，请输入 1、2、3 或 0！${re}"; sleep 2 ;;
+    esac
+done

@@ -22,7 +22,7 @@ check_port() {
 install_reality() {
     clear
     echo -e "${green}开始安装 Reality...${re}"
-    read -p "请输入 Reality 端口 (留空则随机生成): " port
+    read -p "请输入 Reality 端口 (留空则固定8880): " port
     [ -z "$port" ] && port=$(shuf -i 2000-65000 -n 1)
     port=$(check_port "$port")
 
@@ -54,7 +54,7 @@ uninstall_reality() {
 change_port() {
     clear
     echo -e "${yellow}修改 Reality 端口...${re}"
-    read -p "请输入新的 Reality 端口 (留空则固定8880): " new_port
+    read -p "请输入新的 Reality 端口 (留空则随机生成): " new_port
     [ -z "$new_port" ] && new_port=$(shuf -i 2000-65000 -n 1)
     new_port=$(check_port "$new_port")
 

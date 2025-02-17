@@ -52,6 +52,13 @@ if [ -e "$FILENAME" ]; then
 else
     echo -e "\e[1;32mDownloading $FILENAME\e[0m"
     curl -L -sS -o "$FILENAME" "$URL"
+    
+    # Check if the downloaded file is a valid binary
+    if ! file "$FILENAME" | grep -q "executable"; then
+        echo -e "\e[1;31mError: Downloaded file is not a valid executable. Please check the URL.\e[0m"
+        rm -f "$FILENAME"  # Remove invalid file
+        exit 1
+    fi
 fi
 
 # Make the file executable
@@ -59,13 +66,12 @@ chmod +x "$FILENAME"
 
 # Generating Configuration Files
 generate_config() {
-
     X25519Key=$(./"${FILE_PATH}/web" x25519)
     PrivateKey=$(echo "${X25519Key}" | head -1 | awk '{print $3}')
     PublicKey=$(echo "${X25519Key}" | tail -n 1 | awk '{print $3}')
     shortid=$(openssl rand -hex 8)
 
-  cat > ${FILE_PATH}/config.json << EOF
+    cat > ${FILE_PATH}/config.json << EOF
 {
     "inbounds": [
         {
@@ -116,29 +122,50 @@ EOF
 }
 generate_config
 
-# running files
+# Running files
 run() {
-
   if [ -e "${FILE_PATH}/web" ]; then
+    # Check if the file is executable
+    if ! file "${FILE_PATH}/web" | grep -q "executable"; then
+        echo -e "\e[1;31mError: ${FILE_PATH}/web is not a valid executable file.\e[0m"
+        exit 1
+    fi
+
+    # Run the file
     nohup "${FILE_PATH}/web" -c ${FILE_PATH}/config.json >/dev/null 2>&1 &
     sleep 1
-    ps aux | grep "[w]eb" > /dev/null && echo -e "\e[1;32mweb is running\e[0m" || { echo -e "\e[1;35mweb is not running, restarting...\e[0m"; pkill -x "web"; nohup ${FILE_PATH}/web -c ${FILE_PATH}/config.json >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32mweb restarted\e[0m"; }
-  fi
 
+    # Check if the process is running
+    if ps aux | grep -q "[w]eb"; then
+        echo -e "\e[1;32mweb is running\e[0m"
+    else
+        echo -e "\e[1;35mweb is not running, restarting...\e[0m"
+        pkill -x "web" 2>/dev/null
+        nohup "${FILE_PATH}/web" -c ${FILE_PATH}/config.json >/dev/null 2>&1 &
+        sleep 2
+        if ps aux | grep -q "[w]eb"; then
+            echo -e "\e[1;32mweb restarted\e[0m"
+        else
+            echo -e "\e[1;31mError: Failed to start web. Please check the file and configuration.\e[0m"
+            exit 1
+        fi
+    fi
+  else
+    echo -e "\e[1;31mError: ${FILE_PATH}/web does not exist.\e[0m"
+    exit 1
+  fi
 }
 run
 
-# get ip
+# Get IP and ISP information
 IP=$(curl -s ipv4.ip.sb)
-
-# get ipinfo
 ISP=$(curl -s https://speed.cloudflare.com/meta | awk -F\" '{print $26"-"$18}' | sed -e 's/ /_/g')
 
+# Save connection information
 cat > ${FILE_PATH}/list.txt <<EOF
-
 vless://${UUID}@${IP}:${PORT}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${SNI}&fp=chrome&pbk=${PublicKey}&sid=${shortid}&type=tcp&headerType=none#$ISP
-
 EOF
+
 cat ${FILE_PATH}/list.txt
 echo -e "\n\e[1;32m${FILE_PATH}/list.txt saved successfully\e[0m"
 echo ""

@@ -41,28 +41,21 @@ export UUID=$(openssl rand -hex 16 | awk '{print substr($0,1,8)"-"substr($0,9,4)
 echo -e "\e[1;32mInstallation is in progress, please wait...\e[0m"
 
 # Download Dependency Files
-ARCH=$(uname -m) && DOWNLOAD_DIR="${FILE_PATH}" && mkdir -p "$DOWNLOAD_DIR" && FILE_INFO=()
-if [ "$ARCH" == "arm" ] || [ "$ARCH" == "arm64" ] || [ "$ARCH" == "aarch64" ]; then
-    FILE_INFO=("https://github.com/eooce/test/releases/download/arm64/xray web" "https://github.com/eooce/test/releases/download/ARM/swith npm")
-elif [ "$ARCH" == "amd64" ] || [ "$ARCH" == "x86_64" ] || [ "$ARCH" == "x86" ]; then
-    FILE_INFO=("https://github.com/eooce/test/releases/download/amd64/xray web" "https://github.com/eooce/test/releases/download/bulid/swith npm")
+DOWNLOAD_DIR="${FILE_PATH}" && mkdir -p "$DOWNLOAD_DIR"
+URL="https://github.com/eooce/test/releases/download/xray"  # 假设 URL 是固定的
+NEW_FILENAME="web"
+FILENAME="$DOWNLOAD_DIR/$NEW_FILENAME"
+
+# Download the file if it doesn't exist
+if [ -e "$FILENAME" ]; then
+    echo -e "\e[1;32m$FILENAME already exists, skipping download\e[0m"
 else
-    echo "Unsupported architecture: $ARCH"
-    exit 1
+    echo -e "\e[1;32mDownloading $FILENAME\e[0m"
+    curl -L -sS -o "$FILENAME" "$URL"
 fi
-for entry in "${FILE_INFO[@]}"; do
-    URL=$(echo "$entry" | cut -d ' ' -f 1)
-    NEW_FILENAME=$(echo "$entry" | cut -d ' ' -f 2)
-    FILENAME="$DOWNLOAD_DIR/$NEW_FILENAME"
-    if [ -e "$FILENAME" ]; then
-        echo -e "\e[1;32m$FILENAME already exists,Skipping download\e[0m"
-    else
-        curl -L -sS -o "$FILENAME" "$URL"
-        echo -e "\e[1;32mDownloading $FILENAME\e[0m"
-    fi
-    chmod +x $FILENAME
-done
-wait
+
+# Make the file executable
+chmod +x "$FILENAME"
 
 # Generating Configuration Files
 generate_config() {

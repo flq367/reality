@@ -24,7 +24,7 @@ install_reality() {
     echo -e "${green}开始安装 Reality...${re}"
     
     # 提示用户输入 Reality 端口
-    read -p "请输入 Reality 端口 (留空则固定8880): " port
+    read -p "请输入Reality端口 (留空则固定8880): " port
     [ -z "$port" ] && port=$(shuf -i 2000-65000 -n 1)
     port=$(check_port "$port")
 

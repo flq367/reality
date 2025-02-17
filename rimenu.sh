@@ -33,7 +33,7 @@ install_reality() {
     [ -z "$sni" ] && sni="www.apple.com"
 
     if [ -f "/etc/alpine-release" ]; then
-        PORT=$port SNI=$sni bash -c "$(curl -L https://raw.githubusercontent.com/flq367/reality/main/reality-alpine.sh)"
+        PORT=$port SNI=$sni bash -c "$(curl -L https://raw.githubusercontent.com/flq367/reality/main/reality.sh)"
     else
         PORT=$port SNI=$sni bash -c "$(curl -L https://raw.githubusercontent.com/flq367/reality/main/reality.sh)"
     fi

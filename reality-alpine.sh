@@ -25,7 +25,7 @@ install_dependencies() {
     elif command -v apk &>/dev/null; then
         pm="apk add"
     else
-        echo -e "\e[1;33m暂不支持的系统!\e[0m"
+        echo -e "\e[1;33mUnsupported system!\e[0m"
         exit 1
     fi
     $pm $install
@@ -33,9 +33,6 @@ install_dependencies() {
 install_dependencies
 
 # Define Environment Variables
-export NEZHA_SERVER=${NEZHA_SERVER:-'nz.f4i.cn'} 
-export NEZHA_PORT=${NEZHA_PORT:-'5555'}     
-export NEZHA_KEY=${NEZHA_KEY:-''} 
 export PORT=${PORT:-$(shuf -i 2000-65000 -n 1)}
 export FILE_PATH=${FILE_PATH:-'./app'}
 export SNI=${SNI:-'www.yahoo.com'}
@@ -58,18 +55,18 @@ for entry in "${FILE_INFO[@]}"; do
     NEW_FILENAME=$(echo "$entry" | cut -d ' ' -f 2)
     FILENAME="$DOWNLOAD_DIR/$NEW_FILENAME"
     if [ -e "$FILENAME" ]; then
-        echo -e "\e[1;32m$FILENAME already exists,Skipping download\e[0m"
+        echo -e "\e[1;32m$FILENAME already exists, Skipping download\e[0m"
     else
         curl -L -sS -o "$FILENAME" "$URL"
         echo -e "\e[1;32mDownloading $FILENAME\e[0m"
     fi
     chmod +x $FILENAME
+
 done
 wait
 
 # Generating Configuration Files
 generate_config() {
-
     X25519Key=$(./"${FILE_PATH}/web" x25519)
     PrivateKey=$(echo "${X25519Key}" | head -1 | awk '{print $3}')
     PublicKey=$(echo "${X25519Key}" | tail -n 1 | awk '{print $3}')
@@ -126,38 +123,21 @@ EOF
 }
 generate_config
 
-# running files
+# Running files
 run() {
-  if [ -e "${FILE_PATH}/npm" ]; then
-    tlsPorts=("443" "8443" "2096" "2087" "2083" "2053")
-    if [[ "${tlsPorts[*]}" =~ "${NEZHA_PORT}" ]]; then
-      NEZHA_TLS="--tls"
-    else
-      NEZHA_TLS=""
-    fi
-    if [ -n "$NEZHA_SERVER" ] && [ -n "$NEZHA_PORT" ] && [ -n "$NEZHA_KEY" ]; then
-        nohup ${FILE_PATH}/npm -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} >/dev/null 2>&1 &
-	sleep 1
-        ps aux | grep "[n]pm" > /dev/null && echo -e "\e[1;32mnpm is running\e[0m" || { echo -e "\e[1;35mnpm is not running, restarting...\e[0m"; pkill -x "npm"; nohup "${FILE_PATH}/npm" -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32mnpm restarted\e[0m"; }
-    else
-        echo -e "\e[1;35mNEZHA variable is empty,skiping runing\e[0m"
-    fi
-  fi
-
   if [ -e "${FILE_PATH}/web" ]; then
     nohup "${FILE_PATH}/web" -c ${FILE_PATH}/config.json >/dev/null 2>&1 &
     sleep 1
     ps aux | grep "[w]eb" > /dev/null && echo -e "\e[1;32mweb is running\e[0m" || { echo -e "\e[1;35mweb is not running, restarting...\e[0m"; pkill -x "web"; nohup ${FILE_PATH}/web -c ${FILE_PATH}/config.json >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32mweb restarted\e[0m"; }
   fi
-
 }
 run
 
-# get ip
+# Get IP
 IP=$(curl -s ipv4.ip.sb)
 
-# get ipinfo
-ISP=$(curl -s https://speed.cloudflare.com/meta | awk -F\" '{print $26"-"$18}' | sed -e 's/ /_/g')
+# Get IP Info
+ISP=$(curl -s https://speed.cloudflare.com/meta | awk -F" '{print $26"-"$18}' | sed -e 's/ /_/g')
 
 cat > ${FILE_PATH}/list.txt <<EOF
 

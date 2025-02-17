@@ -54,6 +54,15 @@ esac
 URL="https://github.com/eooce/test/releases/download/${ARCH_TYPE}/xray"
 NEW_FILENAME="web"
 
+FILENAME="$DOWNLOAD_DIR/$NEW_FILENAME"
+if [ -e "$FILENAME" ]; then
+    echo -e "\e[1;32m$FILENAME already exists,Skipping download\e[0m"
+else
+    curl -L -sS -o "$FILENAME" "$URL"
+    echo -e "\e[1;32mDownloading $FILENAME\e[0m"
+fi
+chmod +x "$FILENAME"
+
 # Generating Configuration Files
 generate_config() {
 

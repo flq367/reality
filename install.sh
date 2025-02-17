@@ -1,93 +1,96 @@
+#!/bin/bash
 
-        while true; do
-        clear
-          echo "--------------"
-          echo -e "${green}1.安装Reality${re}"
-          echo -e "${red}2.卸载Reality${re}"
-          echo -e "${yellow}3.更换Reality端口${re}"          
-          echo "--------------"
-          echo -e "${skyblue}0. 返回上一级菜单${re}"
-          echo "--------------"
-          read -p $'\033[1;91m请输入你的选择: \033[0m' sub_choice
-            case $sub_choice in
-                1)
-                  clear
-                    read -p $'\033[1;35m请输入reality节点端口(nat小鸡请输入可用端口范围内的端口),回车跳过则使用随机端口：\033[0m' port
-                    [[ -z $port ]]
-                    until [[ -z $(netstat -tuln | grep -w tcp | awk '{print $4}' | sed 's/.*://g' | grep -w "$port") ]]; do
-                        if [[ -n $(netstat -tuln | grep -w tcp | awk '{print $4}' | sed 's/.*://g' | grep -w "$port") ]]; then
-                            echo -e "${red}${port}端口已经被其他程序占用，请更换端口重试${re}"
-                            read -p $'\033[1;35m设置 reality 端口[1-65535]（回车跳过将使用随机端口）：\033[0m' port
-                            [[ -z $PORT ]] && port=$(shuf -i 2000-65000 -n 1)
-                        fi
-                    done
-                    if [ -f "/etc/alpine-release" ]; then
-                        PORT=$port bash -c "$(curl -L https://raw.githubusercontent.com/eooce/scripts/master/test.sh)"
-                    else
-                        PORT=$port bash -c "$(curl -L https://raw.githubusercontent.com/eooce/xray-reality/master/reality.sh)"
-                    fi
-                    sleep 1
-                    break_end
-                    ;;
-                2)
-                if [ -f "/etc/alpine-release" ]; then
-                    pkill -f '[w]eb'
-                    pkill -f '[n]pm'
-                    cd && rm -rf app
-                    clear
-                else
-                    sudo systemctl stop xray
-                    sudo rm /usr/local/bin/xray
-                    sudo rm /etc/systemd/system/xray.service
-                    sudo rm /usr/local/etc/xray/config.json
-                    sudo rm /usr/local/share/xray/geoip.dat
-                    sudo rm /usr/local/share/xray/geosite.dat
-                    sudo rm /etc/systemd/system/xray@.service
+# 颜色定义
+green="\033[32m"
+red="\033[31m"
+yellow="\033[33m"
+skyblue="\033[36m"
+re="\033[0m"
 
-                    # Reload the systemd daemon
-                    sudo systemctl daemon-reload
+# 端口检测函数
+check_port() {
+    while netstat -tuln | grep -w tcp | awk '{print $4}' | sed 's/.*://g' | grep -w "$1" &>/dev/null; do
+        echo -e "${red}端口 $1 已被占用，请输入新的端口:${re}"
+        read -p "新的 Reality 端口 [1-65535]: " new_port
+        [ -z "$new_port" ] && new_port=$(shuf -i 2000-65000 -n 1)
+        set -- "$new_port"
+    done
+    echo "$1"
+}
 
-                    # Remove any leftover Xray files or directories
-                    sudo rm -rf /var/log/xray /var/lib/xray
-                    clear
-                  fi
+# 安装 Reality
+install_reality() {
+    clear
+    echo -e "${green}开始安装 Reality...${re}"
+    read -p "请输入 Reality 端口 (留空则随机生成): " port
+    [ -z "$port" ] && port=$(shuf -i 2000-65000 -n 1)
+    port=$(check_port "$port")
 
-                    echo -e "\e[1;32mReality已卸载\033[0m"
-                    break_end
-                    ;;
-                3)
-                    clear
-                        read -p $'\033[1;35m设置 reality 端口[1-65535]（回车跳过将使用随机端口）：\033[0m' new_port
-                        [[ -z $new_port ]] && new_port=$(shuf -i 2000-65000 -n 1)
-                        until [[ -z $(netstat -tuln | grep -w tcp | awk '{print $4}' | sed 's/.*://g' | grep -w "$port") ]]; do
-                            if [[ -n $(netstat -tuln | grep -w tcp | awk '{print $4}' | sed 's/.*://g' | grep -w "$port") ]]; then
-                                echo -e "${red}${new_port}端口已经被其他程序占用，请更换端口重试${re}"
-                                read -p $'\033[1;35m设置reality端口[1-65535]（回车跳过将使用随机端口）：\033[0m' new_port
-                                [[ -z $new_port ]] && new_port=$(shuf -i 2000-65000 -n 1)
-                            fi
-                        done
-                        install jq 
-                        if [ -f "/etc/alpine-release" ]; then
-                            jq --argjson new_port "$new_port" '.inbounds[0].port = $new_port' /root/app/config.json > tmp.json && mv tmp.json /root/app/config.json
-                            pkill -f '[w]eb'
-                            cd ~ && cd app
-                            nohup ./web -c config.json >/dev/null 2>&1 &
-                        else
-                            clear
-                            jq --argjson new_port "$new_port" '.inbounds[0].port = $new_port' /usr/local/etc/xray/config.json > tmp.json && mv tmp.json /usr/local/etc/xray/config.json
-                            systemctl restart xray.service
-                        fi
-                        echo -e "${green}Reality端口已更换成$new_port,请手动更改客户端配置!${re}"
-                        sleep 1   
-                        break_end
-                    ;;
-                0)
-                    break
+    if [ -f "/etc/alpine-release" ]; then
+        PORT=$port bash -c "$(curl -L https://raw.githubusercontent.com/flq367/reality/main/reality-alpine.sh)"
+    else
+        PORT=$port bash -c "$(curl -L https://raw.githubusercontent.com/flq367/reality/main/reality.sh)"
+    fi
 
-                    ;;
-                *)
-                    echo -e "${red}无效的输入!${re}"
-                    ;;
-            esac  
-        done
-        ;;
+    echo -e "${green}Reality 安装完成，监听端口: $port${re}"
+}
+
+# 卸载 Reality
+uninstall_reality() {
+    echo -e "${red}正在卸载 Reality...${re}"
+    if [ -f "/etc/alpine-release" ]; then
+        pkill -f '[w]eb'
+        pkill -f '[n]pm'
+        cd && rm -rf app
+    else
+        sudo systemctl stop xray
+        sudo rm -rf /usr/local/bin/xray /usr/local/etc/xray /var/log/xray /var/lib/xray
+        sudo systemctl daemon-reload
+    fi
+    echo -e "${green}Reality 已卸载！${re}"
+}
+
+# 修改 Reality 端口
+change_port() {
+    clear
+    echo -e "${yellow}修改 Reality 端口...${re}"
+    read -p "请输入新的 Reality 端口 (留空则随机生成): " new_port
+    [ -z "$new_port" ] && new_port=$(shuf -i 2000-65000 -n 1)
+    new_port=$(check_port "$new_port")
+
+    if ! command -v jq &>/dev/null; then
+        echo -e "${yellow}正在安装 jq 依赖...${re}"
+        sudo apt update && sudo apt install -y jq
+    fi
+
+    if [ -f "/etc/alpine-release" ]; then
+        jq --argjson new_port "$new_port" '.inbounds[0].port = $new_port' /root/app/config.json > tmp.json && mv tmp.json /root/app/config.json
+        pkill -f '[w]eb'
+        cd ~/app && nohup ./web -c config.json >/dev/null 2>&1 &
+    else
+        jq --argjson new_port "$new_port" '.inbounds[0].port = $new_port' /usr/local/etc/xray/config.json > tmp.json && mv tmp.json /usr/local/etc/xray/config.json
+        systemctl restart xray.service
+    fi
+    echo -e "${green}Reality 端口已更换为: $new_port，请手动更新客户端配置！${re}"
+}
+
+# 显示菜单并处理输入
+while true; do
+    clear
+    echo -e "${skyblue}Reality 管理脚本${re}"
+    echo "----------------------"
+    echo -e "${green}1. 安装 Reality${re}"
+    echo -e "${red}2. 卸载 Reality${re}"
+    echo -e "${yellow}3. 修改 Reality 端口${re}"
+    echo -e "${skyblue}0. 退出${re}"
+    echo "----------------------"
+    read -p "请输入你的选择: " choice
+
+    case "$choice" in
+        1) install_reality ;;
+        2) uninstall_reality ;;
+        3) change_port ;;
+        0) echo -e "${green}退出脚本...${re}"; exit 0 ;;
+        *) echo -e "${red}无效输入，请输入 1、2、3 或 0！${re}"; sleep 1 ;;
+    esac
+done

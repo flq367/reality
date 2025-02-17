@@ -22,17 +22,23 @@ check_port() {
 install_reality() {
     clear
     echo -e "${green}开始安装 Reality...${re}"
+    
+    # 提示用户输入 Reality 端口
     read -p "请输入 Reality 端口 (留空则固定8880): " port
     [ -z "$port" ] && port=$(shuf -i 2000-65000 -n 1)
     port=$(check_port "$port")
 
+    # 提示用户输入伪装访问网站
+    read -p "请输入伪装访问网站 (留空则使用默认值 www.apple.com): " sni
+    [ -z "$sni" ] && sni="www.apple.com"
+
     if [ -f "/etc/alpine-release" ]; then
-        PORT=$port bash -c "$(curl -L https://raw.githubusercontent.com/flq367/reality/main/reality-alpine.sh)"
+        PORT=$port SNI=$sni bash -c "$(curl -L https://raw.githubusercontent.com/flq367/reality/main/reality-alpine.sh)"
     else
-        PORT=$port bash -c "$(curl -L https://raw.githubusercontent.com/flq367/reality/main/reality.sh)"
+        PORT=$port SNI=$sni bash -c "$(curl -L https://raw.githubusercontent.com/flq367/reality/main/reality.sh)"
     fi
 
-    echo -e "${green}Reality 安装完成，监听端口: $port${re}"
+    echo -e "${green}Reality 安装完成，监听端口: $port, 伪装网站: $sni${re}"
 }
 
 # 卸载 Reality

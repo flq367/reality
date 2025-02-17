@@ -1,3 +1,5 @@
 一键reality脚本
 
-`curl -fsSL https://raw.githubusercontent.com/flq367/reality/main/install.sh -o install.sh && chmod +x install.sh && ./install.sh`
+```bash
+curl -fsSL https://raw.githubusercontent.com/flq367/reality/main/rimenu.sh -o rimenu.sh && chmod +x rimenu.sh && ./rimenu.sh
+```

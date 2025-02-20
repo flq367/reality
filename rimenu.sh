@@ -1,13 +1,15 @@
 #!/bin/bash
 
-# 颜色定义
-green="\033[32m"
-red="\033[31m"
-yellow="\033[33m"
-skyblue="\033[36m"
-re="\033[0m"
-
-# ... existing code for check_port function ...
+# 端口检测函数
+check_port() {
+    while netstat -tuln | grep -w tcp | awk '{print $4}' | sed 's/.*://g' | grep -w "$1" &>/dev/null; do
+        echo -e "${red}端口 $1 已被占用，请输入新的端口:${re}"
+        read -p "新的 Reality 端口 [1-65535]: " new_port
+        [ -z "$new_port" ] && new_port=$(shuf -i 2000-65000 -n 1)
+        set -- "$new_port"
+    done
+    echo "$1"
+}
 
 while true; do
     clear

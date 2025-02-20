@@ -80,12 +80,44 @@ change_port() {
     echo -e "${green}Reality 端口已更换为: $new_port，请手动更新客户端配置！${re}"
 }
 
+# 查看 Reality 链接
+view_reality_link() {
+    clear
+    echo -e "${skyblue}查看 Reality 链接...${re}"
+    if [ -f "/etc/alpine-release" ]; then
+        # Alpine 系统
+        if [ -f "/root/app/list.txt" ]; then
+            cat /root/app/list.txt
+        else
+            echo -e "${red}未找到 Reality 链接文件，请确保 Reality 已正确安装！${re}"
+        fi
+    else
+        # 非 Alpine 系统
+        config_file="/usr/local/etc/xray/config.json"
+        if [ -f "$config_file" ]; then
+            ip=$(curl -s ipv4.ip.sb)
+            port=$(jq -r '.inbounds[0].port' $config_file)
+            uuid=$(jq -r '.inbounds[0].settings.clients[0].id' $config_file)
+            sni=$(jq -r '.inbounds[0].streamSettings.realitySettings.serverNames[0]' $config_file)
+            pbk=$(jq -r '.inbounds[0].streamSettings.realitySettings.publicKey' $config_file)
+            sid=$(jq -r '.inbounds[0].streamSettings.realitySettings.shortIds[0]' $config_file)
+            isp=$(curl -s https://speed.cloudflare.com/meta | awk -F\" '{print $26"-"$18}' | sed -e 's/ /_/g')
+
+            echo -e "${green}Reality 链接如下:${re}"
+            echo -e "vless://${uuid}@${ip}:${port}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${sni}&fp=chrome&pbk=${pbk}&sid=${sid}&type=tcp&headerType=none#$isp"
+        else
+            echo -e "${red}未找到 Reality 配置文件，请确保 Reality 已正确安装！${re}"
+        fi
+    fi
+}
+
 # 菜单
 echo -e "${skyblue}Reality 管理脚本${re}"
 echo "----------------------"
 echo -e "${green}1. 安装 Reality${re}"
 echo -e "${red}2. 卸载 Reality${re}"
 echo -e "${yellow}3. 修改 Reality 端口${re}"
+echo -e "${skyblue}4. 查看 Reality 链接${re}"
 echo "----------------------"
 read -p "请输入你的选择: " choice
 
@@ -93,5 +125,6 @@ case "$choice" in
     1) install_reality ;;
     2) uninstall_reality ;;
     3) change_port ;;
+    4) view_reality_link ;;
     *) echo -e "${red}无效输入！${re}" ;;
 esac

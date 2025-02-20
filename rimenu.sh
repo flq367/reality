@@ -83,28 +83,37 @@ change_port() {
 # 查看 Reality 链接
 view_reality_link() {
     clear
-    echo -e "${skyblue}查看 Reality 链接...${re}"
+    echo -e "${skyblue}正在查看 Reality 链接...${re}"
+
+    config_file="/usr/local/etc/xray/config.json"
+
+    # 判断是否为 Alpine 系统
     if [ -f "/etc/alpine-release" ]; then
         # Alpine 系统
         if [ -f "/root/app/list.txt" ]; then
+            echo -e "${green}以下是 Reality 链接:${re}"
             cat /root/app/list.txt
         else
             echo -e "${red}未找到 Reality 链接文件，请确保 Reality 已正确安装！${re}"
         fi
     else
         # 非 Alpine 系统
-        config_file="/usr/local/etc/xray/config.json"
         if [ -f "$config_file" ]; then
             ip=$(curl -s ipv4.ip.sb)
             port=$(jq -r '.inbounds[0].port' $config_file)
             uuid=$(jq -r '.inbounds[0].settings.clients[0].id' $config_file)
             sni=$(jq -r '.inbounds[0].streamSettings.realitySettings.serverNames[0]' $config_file)
-            pbk=$(jq -r '.inbounds[0].streamSettings.realitySettings.publicKey' $config_file)
+            private_key=$(jq -r '.inbounds[0].streamSettings.realitySettings.privateKey' $config_file)
             sid=$(jq -r '.inbounds[0].streamSettings.realitySettings.shortIds[0]' $config_file)
             isp=$(curl -s https://speed.cloudflare.com/meta | awk -F\" '{print $26"-"$18}' | sed -e 's/ /_/g')
 
-            echo -e "${green}Reality 链接如下:${re}"
-            echo -e "vless://${uuid}@${ip}:${port}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${sni}&fp=chrome&pbk=${pbk}&sid=${sid}&type=tcp&headerType=none#$isp"
+            # 检查 privateKey 是否为空
+            if [ "$private_key" == "null" ] || [ -z "$private_key" ]; then
+                echo -e "${red}未能正确解析 privateKey，请检查配置文件！${re}"
+            else
+                echo -e "${green}以下是 Reality 链接:${re}"
+                echo -e "vless://${uuid}@${ip}:${port}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${sni}&fp=chrome&pbk=${private_key}&sid=${sid}&type=tcp&headerType=none#$isp"
+            fi
         else
             echo -e "${red}未找到 Reality 配置文件，请确保 Reality 已正确安装！${re}"
         fi

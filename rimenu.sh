@@ -120,6 +120,7 @@ view_reality_link() {
     fi
 }
 
+
 # 菜单
 echo -e "${skyblue}Reality 管理脚本${re}"
 echo "----------------------"

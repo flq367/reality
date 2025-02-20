@@ -84,7 +84,8 @@ reconfig() {
                     "serverNames": [
                         "$SNI"
                     ],
-                    "privateKey": "$rePublicKey",
+                    "privateKey": "$rePrivateKey",
+                    "publicKey": "$rePublicKey",
                     "minClientVer": "",
                     "maxClientVer": "",
                     "maxTimeDiff": 0,

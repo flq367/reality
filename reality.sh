@@ -5,7 +5,7 @@ export UUID=${UUID:-$(cat /proc/sys/kernel/random/uuid)}
 export SNI=${SNI:-'www.apple.com'}  # 默认伪装网站为 www.apple.com
 
 # 检查是否为root下运行
-[[ $EUID -ne 0 ]] && echo "请在root用户下运行脚本" && exit 1
+[[ $EUID -ne 0 ]] && echo -e '\033[1;35m请在root用户下运行脚本\033[0m' && sleep 1 && exit 1
 
 # 安装依赖
 Install_dependencies() {
@@ -18,20 +18,24 @@ Install_dependencies() {
         fi
     done
 
-    if [ -n "$install" ]; then
-        if command -v apt &>/dev/null; then
-            pm="apt-get install -y -q"
-        elif command -v dnf &>/dev/null; then
-            pm="dnf install -y"
-        elif command -v yum &>/dev/null; then
-            pm="yum install -y"
-        elif command -v apk &>/dev/null; then
-            pm="apk add"
-        else
-            echo "暂不支持的系统!" && exit 1
-        fi
-        $pm $install >/dev/null 2>&1
+    if [ -z "$install" ]; then
+        echo -e "\e[1;32mAll packages are already installed\e[0m"
+        return
     fi
+
+    if command -v apt &>/dev/null; then
+        pm="apt-get install -y -q"
+    elif command -v dnf &>/dev/null; then
+        pm="dnf install -y"
+    elif command -v yum &>/dev/null; then
+        pm="yum install -y"
+    elif command -v apk &>/dev/null; then
+        pm="apk add"
+    else
+        echo -e "\e[1;33m暂不支持的系统!\e[0m"
+        exit 1
+    fi
+    $pm $install
 }
 Install_dependencies
 
@@ -46,7 +50,7 @@ getIP() {
 }
 
 # 安装xray
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install >/dev/null 2>&1
+bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
 
 # 配置Xray
 reconfig() {
@@ -105,13 +109,20 @@ reconfig() {
 EOF
 
     # 启动Xray服务
-    systemctl enable xray.service >/dev/null 2>&1
-    systemctl restart xray.service >/dev/null 2>&1
+    systemctl enable xray.service && systemctl restart xray.service
 
-    # 获取VLESS链接
-    url="vless://${UUID}@$(getIP):${PORT}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${SNI}&fp=chrome&pbk=${rePublicKey}&sid=${shortId}&type=tcp&headerType=none"
+    # 获取ipinfo
+    ISP=$(curl -s https://speed.cloudflare.com/meta | awk -F\" '{print $26"-"$18}' | sed -e 's/ /_/g')
 
-    # 输出最终链接
-    echo "${url}"
+    # 删除运行脚本
+    rm -f tcp-wss.sh install-release.sh reality.sh 
+
+    url="vless://${UUID}@$(getIP):${PORT}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${SNI}&fp=chrome&pbk=${rePublicKey}&sid=${shortId}&type=tcp&headerType=none#$ISP"
+
+    echo ""
+    echo -e "\e[1;32mreality 安装成功\033[0m"
+    echo ""
+    echo -e "\e[1;32m${url}\033[0m"
+    echo ""
 }
 reconfig

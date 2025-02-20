@@ -1,3 +1,4 @@
+[[reality.sh]]
 #!/bin/bash
 export PORT=${PORT:-'8880'}
 export UUID=${UUID:-$(cat /proc/sys/kernel/random/uuid)}
@@ -8,7 +9,7 @@ export SNI=${SNI:-'www.apple.com'}  # 默认伪装网站为 www.apple.com
 
 # 安装依赖
 Install_dependencies() {
-    packages="gawk curl openssl qrencode"
+    packages="gawk curl openssl"
     install=""
 
     for pkg in $packages; do
@@ -123,7 +124,5 @@ EOF
     echo ""
     echo -e "\e[1;32m${url}\033[0m"
     echo ""
-    qrencode -t ANSIUTF8 -m 2 -s 2 -o - "$url"
-    echo ""   
 }
 reconfig

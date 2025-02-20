@@ -1,6 +1,7 @@
 #!/bin/bash
 export PORT=${PORT:-'8880'}
 export UUID=${UUID:-$(cat /proc/sys/kernel/random/uuid)}
+export SNI=${SNI:-'www.apple.com'}  # 默认伪装网站为 www.apple.com
 
 # 检查是否为root下运行
 [[ $EUID -ne 0 ]] && echo -e '\033[1;35m请在root用户下运行脚本\033[0m' && sleep 1 && exit 1
@@ -80,7 +81,7 @@ reconfig() {
                     "dest": "1.1.1.1:443",
                     "xver": 0,
                     "serverNames": [
-                        "www.apple.com"
+                        "$SNI"
                     ],
                     "privateKey": "$rePrivateKey",
                     "minClientVer": "",
@@ -115,7 +116,7 @@ EOF
     # 删除运行脚本
     rm -f tcp-wss.sh install-release.sh reality.sh 
 
-    url="vless://${UUID}@$(getIP):${PORT}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.apple.com&fp=chrome&pbk=${rePublicKey}&sid=${shortId}&type=tcp&headerType=none#$ISP"
+    url="vless://${UUID}@$(getIP):${PORT}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${SNI}&fp=chrome&pbk=${rePublicKey}&sid=${shortId}&type=tcp&headerType=none#$ISP"
 
     echo ""
     echo -e "\e[1;32mreality 安装成功\033[0m"
@@ -124,6 +125,5 @@ EOF
     echo ""
     qrencode -t ANSIUTF8 -m 2 -s 2 -o - "$url"
     echo ""   
-
 }
 reconfig
